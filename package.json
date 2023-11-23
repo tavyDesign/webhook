@@ -1,7 +1,18 @@
 {
-    "dependencies": {
-        "next": "latest",
-        "react": "17.0.2",
-        "react-dom": "17.0.2"
+    "name": "vercel-fb-webhook",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@types/node": "20.9.1",
+        "@types/react": "18.2.37",
+        "@types/react-dom": "18.0.6",
+        "cross-env": "^7.0.3",
+        "typescript": "5.2.2"
     }
 }
