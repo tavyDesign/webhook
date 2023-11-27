@@ -1,4 +1,5 @@
 // pages/api/webhook.tsx
+//fvgherstgsthjyehsergdhsagzsd
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default function handler(
@@ -10,18 +11,15 @@ export default function handler(
 
     // Verifică dacă este o cerere GET pentru validarea webhook-ului
     if (req.method === 'GET') {
-        // Extrage parametrii 'hub.mode', 'hub.challenge' și 'hub.verify_token' din cerere
-        const mode = req.query['hub.mode'];
-        const token = req.query['hub.verify_token'];
+        const verifyToken = req.query['hub.verify_token'];
         const challenge = req.query['hub.challenge'];
 
-        // Verifică dacă 'mode' și 'token' sunt corecte
-        if (mode === 'subscribe' && token === MY_VERIFY_TOKEN) {
-            // Răspunde cu 'challenge' trimis de Facebook
+        if (verifyToken === MY_VERIFY_TOKEN) {
+            // Trimite înapoi 'hub.challenge' dacă token-ul este valid
             res.status(200).send(challenge);
         } else {
-            // Răspunde cu o eroare dacă verificația nu este corectă
-            res.status(403).end();
+            // Trimite un mesaj de eroare dacă token-ul nu este valid
+            res.status(403).send('Invalid verify token');
         }
     } else if (req.method === 'POST') {
         // Aici poți procesa cererile POST de la webhook (de exemplu, actualizări de pagină, mesaje etc.)
