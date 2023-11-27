@@ -1,8 +1,9 @@
 // pages/api/webhook.tsx
 //fvgherstgsthjyehsergdhsagzsd
 import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
 
-export default function handler(
+export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse
 ) {
@@ -22,14 +23,49 @@ export default function handler(
             res.status(403).send('Invalid verify token');
         }
     } else if (req.method === 'POST') {
-        // Aici poți procesa cererile POST de la webhook (de exemplu, actualizări de pagină, mesaje etc.)
+        const data = req.body;
 
-        // Trimite un răspuns de succes
-        res.status(200).json({ success: true, message: 'Webhook received' });
+        if (data.object === 'page') {
+            for (const entry of data.entry) {
+                for (const change of entry.changes) {
+                    if (
+                        change.value.item === 'comment' &&
+                        change.value.verb === 'add' &&
+                        change.value.from.name !== 'Revista Sufletului' &&
+                        change.value.message &&
+                        isNotReply(change.value.comment_id, change.value.parent_id)
+                    ) {
+                        try {
+                            // Forward the necessary data to your PHP endpoint
+                            const phpEndpoint = 'https://tavydesign.com/facebook/webhook/call.php';
+                            const response = await axios.post(phpEndpoint, change.value);
+
+                            if (response.status === 200) {
+                                res.status(200).json({ success: true, message: 'Data forwarded to PHP script' });
+                            } else {
+                                res.status(500).json({ success: false, message: 'Error forwarding data to PHP script' });
+                            }
+                        } catch (error) {
+                            res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+                        }
+                    }
+                }
+            }
+            res.status(200).json({ success: true, message: '' });
+        } else {
+            res.status(400).json({ success: false, message: 'Invalid request object' });
+        }
     } else {
         const verifyToken = req.query['hub.verify_token'];
         const challenge = req.query['hub.challenge'];
         // Handle any non-GET/POST requests
         res.status(405).json({ success: false, message: 'Method Not Allowed: ' + verifyToken + ' - ' + challenge });
     }
+}
+
+function isNotReply(commentId, parentId) {
+    const [commentFirstPart] = commentId.split('_');
+    const [, parentSecondPart] = parentId.split('_');
+
+    return commentFirstPart === parentSecondPart;
 }
