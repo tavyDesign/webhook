@@ -27,7 +27,9 @@ export default function handler(
         // Trimite un răspuns de succes
         res.status(200).json({ success: true, message: 'Webhook received' });
     } else {
+        const verifyToken = req.query['hub.verify_token'];
+        const challenge = req.query['hub.challenge'];
         // Handle any non-GET/POST requests
-        res.status(405).json({ success: false, message: 'Method Not Allowed' });
+        res.status(405).json({ success: false, message: 'Method Not Allowed: ' + verifyToken + ' - ' + challenge });
     }
 }
