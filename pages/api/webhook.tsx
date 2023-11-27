@@ -26,32 +26,25 @@ export default async function handler(
         const data = req.body;
 
         if (data.object === 'page') {
-            for (const entry of data.entry) {
-                for (const change of entry.changes) {
-                    if (
-                        change.value.item === 'comment' &&
-                        change.value.verb === 'add' &&
-                        change.value.from.name !== 'Revista Sufletului' &&
-                        change.value.message &&
-                        isNotReply(change.value.comment_id, change.value.parent_id)
-                    ) {
-                        try {
-                            // Forward the necessary data to your PHP endpoint
+            try {
+                for (const entry of data.entry) {
+                    for (const change of entry.changes) {
+                        if (
+                            change.value.item === 'comment' &&
+                            change.value.verb === 'add' &&
+                            change.value.from.name !== 'Revista Sufletului' &&
+                            change.value.message &&
+                            isNotReply(change.value.comment_id, change.value.parent_id)
+                        ) {
                             const phpEndpoint = 'https://tavydesign.com/facebook/webhook/call.php';
-                            const response = await axios.post(phpEndpoint, change.value);
-
-                            if (response.status === 200) {
-                                res.status(200).json({ success: true, message: 'Data forwarded to PHP script' });
-                            } else {
-                                res.status(500).json({ success: false, message: 'Error forwarding data to PHP script' });
-                            }
-                        } catch (error) {
-                            res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+                            await axios.post(phpEndpoint, change.value);
                         }
                     }
                 }
+                res.status(200).json({ success: true, message: 'Data processed' });
+            } catch (error) {
+                res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
             }
-            res.status(200).json({ success: true, message: '' });
         } else {
             res.status(400).json({ success: false, message: 'Invalid request object' });
         }
